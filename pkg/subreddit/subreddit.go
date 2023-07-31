@@ -18,8 +18,9 @@ type SubredditMonitor struct {
 }
 
 type Post struct {
-	Url   string
-	Title string
+	Url       string
+	Title     string
+	Permalink string
 }
 
 // Creates a new [SubredditMonitor] which will manage the process of detecting new
@@ -32,11 +33,10 @@ func New(subreddit string) (*SubredditMonitor, error) {
 
 	data, err := s.getLatestSubredditPost()
 	if err != nil {
-		return nil, fmt.Errorf("Unable to retrieve initial reddit data: %w", err)
+		return nil, fmt.Errorf("unable to retrieve initial reddit data: %w", err)
 	}
 	log.Info().Msg(fmt.Sprintf("Setting initial post to be: %s", data.Title))
-	s.latestPost.Title = data.Title
-	s.latestPost.Url = data.URL
+	s.latestPost = Post{data.URL, data.Title, data.Permalink}
 	return s, nil
 }
 
@@ -64,7 +64,8 @@ func (s *SubredditMonitor) getLatestSubredditPost() (*Data, error) {
 	}
 
 	if resp.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("Non 200 response: %s", string(data)))
+		// return nil, errors.New(fmt.Sprintf("Non 200 response: %s", string(data)))
+		return nil, fmt.Errorf("non 200 response: %s", string(data))
 	}
 
 	var result APIResponse
@@ -92,9 +93,10 @@ func (s *SubredditMonitor) CheckForNewPosts() bool {
 	}
 
 	if data.URL != s.latestPost.Url {
+		fmt.Println()
 		log.Info().Msg("Found new post!")
 		log.Info().Msg(fmt.Sprintf("New post title: %s", data.Title))
-		s.latestPost = Post{data.URL, data.Title}
+		s.latestPost = Post{data.URL, data.Title, fmt.Sprintf("https://reddit.com/%s", data.Permalink)}
 		return true
 	}
 	log.Debug().Msg("No new post found")

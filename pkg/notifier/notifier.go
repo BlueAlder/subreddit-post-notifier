@@ -1,6 +1,7 @@
 package notifier
 
 import (
+	"fmt"
 	"os/exec"
 
 	"github.com/rs/zerolog/log"
@@ -10,7 +11,7 @@ func OpenURLInBrowser(url string) {
 	cmd := exec.Command("open", url)
 	_, err := cmd.Output()
 	if err != nil {
-		log.Warn().Err(err).Msg("Error after opening URL")
+		log.Fatal().Err(err).Msg(fmt.Sprintf("Error after opening URL %s", url))
 	}
 }
 

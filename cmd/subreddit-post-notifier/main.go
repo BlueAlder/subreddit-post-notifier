@@ -30,7 +30,7 @@ func main() {
 }
 
 func startPolling(subredditName string, pollingInterval time.Duration) {
-	log.Info().Msg(fmt.Sprintf("Starting monitoring subreddit %s every %s", subredditName, pollingInterval))
+	log.Info().Msg(fmt.Sprintf("Starting monitoring subreddit /r/%s every %s", subredditName, pollingInterval))
 
 	rm, err := subreddit.New(subredditName)
 	if err != nil {
@@ -39,13 +39,10 @@ func startPolling(subredditName string, pollingInterval time.Duration) {
 
 	poll := time.NewTicker(pollingInterval)
 
-	for {
-		select {
-		case <-poll.C:
-			fmt.Printf("\rLast Checked %s", time.Now().Format("15:04:05"))
-			if rm.CheckForNewPosts() {
-				notifier.OpenURLInBrowser(rm.GetLatestPost().Url)
-			}
+	for range poll.C {
+		fmt.Printf("\rLast Checked %s", time.Now().Format("15:04:05"))
+		if rm.CheckForNewPosts() {
+			notifier.OpenURLInBrowser(rm.GetLatestPost().Permalink)
 		}
 	}
 }
