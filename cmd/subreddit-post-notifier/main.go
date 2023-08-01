@@ -42,6 +42,7 @@ func startPolling(subredditName string, pollingInterval time.Duration) {
 	for range poll.C {
 		fmt.Printf("\rLast Checked %s", time.Now().Format("15:04:05"))
 		if rm.CheckForNewPosts() {
+			notifier.SendOSNotification("New Post Found", rm.GetLatestPost().Title)
 			notifier.OpenURLInBrowser(rm.GetLatestPost().Permalink)
 		}
 	}

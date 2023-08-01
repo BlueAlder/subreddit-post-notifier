@@ -35,8 +35,9 @@ func New(subreddit string) (*SubredditMonitor, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve initial reddit data: %w", err)
 	}
-	log.Info().Msg(fmt.Sprintf("Setting initial post to be: %s", data.Title))
-	s.latestPost = Post{data.URL, data.Title, data.Permalink}
+	s.latestPost = Post{data.URL, data.Title, formatPermalink(data.Permalink)}
+	log.Info().Msg(fmt.Sprintf("Set initial post to be: %s", data.Title))
+	log.Info().Msgf("URL: %s", s.latestPost.Permalink)
 	return s, nil
 }
 
@@ -64,7 +65,6 @@ func (s *SubredditMonitor) getLatestSubredditPost() (*Data, error) {
 	}
 
 	if resp.StatusCode != 200 {
-		// return nil, errors.New(fmt.Sprintf("Non 200 response: %s", string(data)))
 		return nil, fmt.Errorf("non 200 response: %s", string(data))
 	}
 
@@ -95,11 +95,16 @@ func (s *SubredditMonitor) CheckForNewPosts() bool {
 	if data.URL != s.latestPost.Url {
 		fmt.Println()
 		log.Info().Msg("Found new post!")
-		log.Info().Msg(fmt.Sprintf("New post title: %s", data.Title))
-		s.latestPost = Post{data.URL, data.Title, fmt.Sprintf("https://reddit.com/%s", data.Permalink)}
+		s.latestPost = Post{data.URL, data.Title, formatPermalink(data.Permalink)}
+		log.Info().Msg(fmt.Sprintf("New post title: %s", s.latestPost.Title))
+		log.Info().Msgf("New Post URL: %s", s.latestPost.Permalink)
 		return true
 	}
 	log.Debug().Msg("No new post found")
 	return false
 
+}
+
+func formatPermalink(permalink string) string {
+	return fmt.Sprintf("https://reddit.com%s", permalink)
 }
